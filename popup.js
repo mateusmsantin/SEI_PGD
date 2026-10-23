@@ -1,127 +1,84 @@
-const KEY = "seiPgdItems";
-const SETTINGS_KEY = "seiPgdSettings";
-const DEFAULT_SETTINGS = { dateMode: "periodo", dateStart: "2026-10-01", dateEnd: "2026-10-31" };
-const itemsEl = document.getElementById("items");
-const emptyEl = document.getElementById("empty");
-const countEl = document.getElementById("count");
-const dateStartEl = document.getElementById("dateStart");
-const dateEndEl = document.getElementById("dateEnd");
-const dateErrorEl = document.getElementById("dateError");
-const settingsStatusEl = document.getElementById("settingsStatus");
-const actionsListEl = document.getElementById("actionsList");
-const actionsCountEl = document.getElementById("actionsCount");
-const actionsUpdatedEl = document.getElementById("actionsUpdated");
-async function getItems() { const data = await chrome.storage.local.get(KEY); return Array.isArray(data[KEY]) ? data[KEY] : []; }
-async function saveItems(items) { await chrome.storage.local.set({ [KEY]: items }); render(); }
-async function getSettings() { const data = await chrome.storage.local.get(SETTINGS_KEY); return { ...DEFAULT_SETTINGS, ...(data[SETTINGS_KEY] || {}) }; }
-async function getActions() { const data = await chrome.storage.local.get(["seiPgdActions", "seiPgdActionsUpdatedAt"]); return { actions: Array.isArray(data.seiPgdActions) ? data.seiPgdActions : [], updatedAt: data.seiPgdActionsUpdatedAt || "" }; }
-function safeText(value) { return String(value || "").replace(/\s+/g, " ").trim(); }
-function brDate(iso) { if (!/^\d{4}-\d{2}-\d{2}$/.test(iso || "")) return iso || ""; const [y,m,d] = iso.split("-"); return `${d}/${m}/${y}`; }
-function validPeriod(start,end) { return Boolean(start && end && start <= end); }
-async function loadSettings() { const s = await getSettings(); dateStartEl.value = s.dateStart; dateEndEl.value = s.dateEnd; updatePeriodStatus(s); }
-function updatePeriodStatus(s) { settingsStatusEl.textContent = `Período configurado: ${brDate(s.dateStart)} a ${brDate(s.dateEnd)}`; }
-async function saveSettings() {
-  const dateStart = dateStartEl.value, dateEnd = dateEndEl.value;
-  const valid = validPeriod(dateStart,dateEnd); dateErrorEl.hidden = valid;
-  if (!valid) return;
-  const settings = { dateMode: "periodo", dateStart, dateEnd };
-  await chrome.storage.local.set({ [SETTINGS_KEY]: settings }); updatePeriodStatus(settings); settingsStatusEl.textContent += " — salvo";
-}
+const $ = s => document.querySelector(s);
+const send = m => chrome.runtime.sendMessage(m);
+const br = s => s.split('-').reverse().join('/');
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-async function renderActions() {
-  const { actions, updatedAt } = await getActions();
-  actionsCountEl.textContent = String(actions.length);
-  actionsListEl.replaceChildren();
-  if (!actions.length) {
-    const empty = document.createElement("div"); empty.className = "actions-empty";
-    empty.textContent = "Nenhuma ação importada. Abra o plano no Cobalto e use o botão Atualizar ações dentro do menu PGD.";
-    actionsListEl.append(empty);
-  } else {
-    for (const action of actions) {
-      const card = document.createElement("div"); card.className = "action-item";
-      const title = document.createElement("div"); title.className = "action-title"; title.textContent = safeText(action.descricao || "Ação sem descrição");
-      const meta = document.createElement("div"); meta.className = "action-meta";
-      const carga = Number(action.carga_horaria || 0), usada = Number(action.horas_utilizadas || 0), saldo = Number(action.saldo ?? (carga-usada));
-      meta.textContent = `Modalidade: ${safeText(action.modalidade || "Modalidade não informada")} · Carga horária: ${carga}h · Horas utilizadas: ${usada}h · Saldo: ${saldo}h`;
-      card.append(title, meta); actionsListEl.append(card);
-    }
-  }
-  actionsUpdatedEl.textContent = updatedAt ? `Importadas do Cobalto em ${new Date(updatedAt).toLocaleString("pt-BR")}.` : "A lista ainda não foi importada do Cobalto.";
-}
-
-
-async function refreshCobaltoActions() {
-  const button = document.getElementById("refreshCobaltoActions");
-  button.disabled = true;
-  const previous = button.textContent;
-  button.textContent = "Buscando grade…";
-  actionsUpdatedEl.textContent = "Procurando uma aba aberta do Cobalto com a grade #gridAcoes…";
+$('#f').onsubmit = async ev => {
+  ev.preventDefault();
+  const texto = $('#ft').value.trim(); if (!texto) return;
+  const r = await send({ op: 'adicionar', item: { tipo: 'manual', texto } });
+  if (r?.ok) $('#ft').value = ''; else $('#erro').textContent = r?.error || 'Falha ao adicionar.';
+};
+$('#reler').onclick = async () => {
+  const b = $('#reler'); b.disabled = true; $('#dst').textContent = 'Procurando a aba do plano no Cobalto…';
+  let msg = 'Não encontrei uma aba do Cobalto aberta. Abra o plano de trabalho e tente de novo.';
   try {
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    const activeTab = tabs[0];
-    let response;
-    if (activeTab?.id) {
-      try { response = await chrome.tabs.sendMessage(activeTab.id, { type: "PGD_IMPORT_COBALTO_ACTIONS" }); } catch (_) {}
+    const tabs = await chrome.tabs.query({ url: 'https://cobalto.ufpel.edu.br/*' });
+    for (const t of tabs) {
+      try { const r = await chrome.tabs.sendMessage(t.id, { type: 'reler' }); msg = r?.msg || msg; if (r?.ok) break; } catch (_) { msg = 'Recarregue a aba do Cobalto (F5) e tente de novo.'; }
     }
-    if (!response?.ok) {
-      const allTabs = await chrome.tabs.query({});
-      for (const tab of allTabs) {
-        if (!tab.id || tab.id === activeTab?.id) continue;
-        try {
-          response = await chrome.tabs.sendMessage(tab.id, { type: "PGD_IMPORT_COBALTO_ACTIONS" });
-          if (response?.ok) break;
-        } catch (_) {}
-      }
-    }
-    if (!response?.ok) {
-      actionsUpdatedEl.textContent = response?.message || "Não encontrei uma aba do Cobalto com a extensão ativa e a grade #gridAcoes. Abra o plano de trabalho, recarregue a página e tente novamente.";
-      return;
-    }
-    await renderActions();
-    actionsUpdatedEl.textContent = response.message + " Atualização concluída.";
-  } catch (error) {
-    actionsUpdatedEl.textContent = `Falha ao atualizar: ${error.message || error}`;
-  } finally {
-    button.disabled = false;
-    button.textContent = previous;
-  }
-}
-document.getElementById("refreshCobaltoActions").addEventListener("click", refreshCobaltoActions);
+  } catch (e) { msg = 'Falha: ' + e.message; }
+  $('#dst').textContent = msg; b.disabled = false;
+};
+$('#opt').onclick = e => { e.preventDefault(); chrome.runtime.openOptionsPage(); };
 
-async function render() {
-  const items = await getItems(); countEl.textContent = items.length; itemsEl.replaceChildren(); emptyEl.hidden = items.length > 0;
-  for (const item of items) {
-    const card = document.createElement("div"); card.className = "item";
-    const info = document.createElement("div"), kind = document.createElement("div"); kind.className = "kind"; kind.textContent = item.type === "processo" ? "Processo" : "Despacho";
-    const title = document.createElement("div"); title.className = "title"; title.textContent = safeText(item.title || item.number || "Item PGD");
-    const number = document.createElement("div"); number.className = "number"; number.textContent = safeText(item.number); info.append(kind,title,number);
-    if (item.url) { const link = document.createElement("a"); link.href = item.url; link.target = "_blank"; link.rel = "noopener"; link.textContent = "Abrir no SEI"; info.append(link); }
-    const remove = document.createElement("button"); remove.className = "remove"; remove.textContent = "Remover";
-    remove.addEventListener("click", async () => { const current = await getItems(); await saveItems(current.filter(x => !(x.type === item.type && x.id === item.id && x.url === item.url))); });
-    card.append(info,remove); itemsEl.append(card);
+async function renderDireto() {
+  const { plano, sel = {}, ledger = [], fila = {}, ultimoErro } = await chrome.storage.local.get(['plano', 'sel', 'ledger', 'fila', 'ultimoErro']);
+  const cfg = await VC.getConfig();
+  const novos = (ledger || []).filter(l => l.ok && plano && l.ts > plano.ts);
+  const sel$ = $('#acao');
+  sel$.replaceChildren();
+  if (!plano) {
+    sel$.innerHTML = '<option value="">— abra o plano no Cobalto —</option>';
+    $('#dst').textContent = 'Abra o plano de trabalho no Cobalto uma vez para a extensão ler as ações.';
+  } else {
+    sel$.innerHTML = '<option value="">Escolha a Ação…</option>' + plano.acoes.map(a => {
+      const saldo = a.carga - a.usadas - novos.filter(l => l.acaoId === a.id).reduce((t, l) => t + l.horas, 0);
+      return `<option value="${esc(a.id)}" ${a.id === sel.acaoId ? 'selected' : ''}>${esc(a.descricao.slice(0, 60))} — ${esc(a.modalidade.slice(0, 4))} (saldo ${saldo}h)</option>`;
+    }).join('');
+    $('#dst').textContent = `Plano ${plano.planoId} lido em ${new Date(plano.ts).toLocaleString('pt-BR')}.`;
   }
+  $('#nAcoes').textContent = plano ? plano.acoes.length : 0;
+  $('#listaAcoes').innerHTML = plano ? plano.acoes.map(a => {
+    const saldo = a.carga - a.usadas - novos.filter(l => l.acaoId === a.id).reduce((t, l) => t + l.horas, 0);
+    return `<div style="padding:4px 0;border-top:1px solid #eee"><b>${esc(a.descricao)}</b><br><span style="color:#555">${esc(a.modalidade)} · carga ${a.carga}h · utilizadas ${a.usadas}h · saldo ${saldo}h</span></div>`;
+  }).join('') : '';
+  $('#horas').value = sel.horas ?? 8;
+  if (document.activeElement !== $('#hor')) $('#hor').value = cfg.envio.horario;
+  $('#auto').checked = !!cfg.envio.auto;
+  const hoje = VC.hoje();
+  const dias = Object.keys(fila).sort();
+  const total = dias.reduce((s, d) => s + fila[d].length, 0);
+  $('#filaT').textContent = `Fila (${total} ${total === 1 ? 'item' : 'itens'})`;
+  $('#enviar').disabled = !total;
+  $('#fila').innerHTML = dias.map(d => `<div style="color:#555;margin-top:4px">${br(d)}${d === hoje ? ' (hoje)' : ''}</div>` + fila[d].map(i =>
+    `<div style="display:flex;gap:4px"><span style="flex:1">${i.tipo === 'manual' ? '✍ ' + esc(i.texto) : (i.tipo === 'documento' ? '📄 ' + esc(i.docNome) + ' — ' : '📁 ') + esc(i.numero)}</span><button class="x" data-fd="${d}" data-fk="${esc(i.key)}">✕</button></div>`).join('')).join('') || '<i>Vazia.</i>';
+  $('#erro').textContent = ultimoErro ? `Último envio automático falhou (${br(ultimoErro.dia)}): ${ultimoErro.erro}` : '';
+  $('#hist').innerHTML = [...(ledger || [])].reverse().slice(0, 5).map(l =>
+    `<div style="color:${l.ok ? '#1f7a3d' : '#b3261e'}">${l.ok ? '✓' : '✗'} ${br(l.dia)} ${new Date(l.ts).toLocaleTimeString('pt-BR')} · ${l.horas}h · ${esc(l.numero)}${l.ok ? '' : ' — ' + esc(l.resp)}</div>`).join('');
 }
-function exportText(items,settings) {
-  const processes = items.filter(x => x.type === "processo");
-  return [`Período das entregas: ${brDate(settings.dateStart)} a ${brDate(settings.dateEnd)}`,`Processos selecionados: ${processes.length}`,"",...processes.map((x,i) => `${i+1}. ${safeText(x.number)}${x.url ? `\nLink SEI: ${x.url}` : ""}`),items.some(x => x.type === "despacho") ? `\nDespachos selecionados (não incluídos na lista de números de processos): ${items.filter(x => x.type === "despacho").length}` : ""].filter(Boolean).join("\n");
+async function salvarSel() {
+  await chrome.storage.local.set({ sel: { acaoId: $('#acao').value, horas: Number($('#horas').value) || 8 } });
 }
-function downloadFile(filename,contents,type) { const blob = new Blob([contents],{type}); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = filename; a.click(); setTimeout(() => URL.revokeObjectURL(url),1000); }
-document.getElementById("saveSettings").addEventListener("click",saveSettings);
-document.getElementById("exportTxt").addEventListener("click",async () => { const settings = await getSettings(); downloadFile("lista-pgd-sei.txt",exportText(await getItems(),settings),"text/plain;charset=utf-8"); });
-document.getElementById("exportJson").addEventListener("click",async () => {
-  const settings = await getSettings(), items = await getItems();
-  if (!validPeriod(settings.dateStart,settings.dateEnd)) { alert("Configure um período válido antes de preparar os dados."); return; }
-  const processos = items.filter(x => x.type === "processo").map(x => ({ numero: safeText(x.number), url: x.url || "" }));
-  const payload = { formato: "pgd-sei-cobalto-v1", periodo: { modo: "periodo", data_inicial: settings.dateStart, data_final: settings.dateEnd }, processos };
-  downloadFile("pgd-cobalto-importacao.json",JSON.stringify(payload,null,2),"application/json;charset=utf-8");
+async function salvarEnvio() {
+  const { config = {} } = await chrome.storage.local.get('config');
+  config.envio = { auto: $('#auto').checked, horario: $('#hor').value || '17:30' };
+  await chrome.storage.local.set({ config });
+}
+['#acao', '#horas'].forEach(id => $(id).addEventListener('change', salvarSel));
+['#auto', '#hor'].forEach(id => $(id).addEventListener('change', salvarEnvio));
+$('#enviar').onclick = async () => {
+  $('#enviar').disabled = true; $('#erro').textContent = 'Enviando…';
+  const { fila = {} } = await chrome.storage.local.get('fila');
+  for (const d of Object.keys(fila).sort()) {
+    const r = await send({ op: 'enviarDia', dia: d });
+    if (!r?.ok) { $('#erro').textContent = r?.error || 'Falha ao enviar.'; renderDireto(); return; }
+  }
+  await chrome.storage.local.remove('ultimoErro'); renderDireto();
+};
+document.addEventListener('click', async e => {
+  if (e.target.dataset.fk) { await send({ op: 'filaRemover', dia: e.target.dataset.fd, key: e.target.dataset.fk }); renderDireto(); }
 });
-document.getElementById("copy").addEventListener("click",async () => {
-  const settings = await getSettings(), text = exportText(await getItems(),settings);
-  try { await navigator.clipboard.writeText(text); document.getElementById("copy").textContent = "Copiado!"; setTimeout(() => document.getElementById("copy").textContent = "Copiar lista",1400); }
-  catch { const area = document.createElement("textarea"); area.value = text; document.body.append(area); area.select(); document.execCommand("copy"); area.remove(); }
-});
-document.getElementById("clear").addEventListener("click",async () => { if (!confirm("Remover todos os itens acumulados?")) return; await chrome.storage.local.set({ [KEY]: [] }); render(); });
-loadSettings(); render(); renderActions();
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === "local" && (changes.seiPgdActions || changes.seiPgdActionsUpdatedAt)) renderActions();
-});
+
+chrome.storage.onChanged.addListener((ch) => { if (ch.plano || ch.ledger || ch.fila || ch.config || ch.ultimoErro) renderDireto(); });
+renderDireto();

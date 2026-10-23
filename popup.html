@@ -1,35 +1,36 @@
 <!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PGD — SEI → Cobalto</title>
-  <link rel="stylesheet" href="popup.css">
-</head>
+<html lang="pt-br"><head><meta charset="utf-8"><title>SEI → Cobalto</title>
+<style>
+  body{font:13px/1.4 system-ui,sans-serif;width:420px;margin:0;color:#1d1d1f}
+  header{background:#1f4e79;color:#fff;padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
+  main{padding:10px 12px;max-height:440px;overflow:auto}
+  h4{margin:10px 0 4px;font-size:12px;color:#555}
+  .ev{display:flex;gap:6px;align-items:flex-start;padding:3px 0;border-top:1px solid #eee}
+  .ev .t{flex:1;word-break:break-word}.ev.off .t{color:#999;text-decoration:line-through}
+  .ev.done .t{color:#777}.tag{font-size:11px;color:#1f7a3d}
+  button{cursor:pointer}.x{border:0;background:none;color:#b3261e}
+  form{display:flex;gap:6px;margin-top:8px}form input[type=text]{flex:1}
+  footer{padding:8px 12px;border-top:1px solid #ddd;display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:#555}
+</style></head>
 <body>
-  <header><div><h1>PGD — SEI → Cobalto</h1><p>Processos selecionados e período das entregas</p></div><span id="count" class="count">0</span></header>
-  <section class="settings">
-    <h2>Período das entregas</h2>
-    <p class="hint">Defina o intervalo para planejar as entregas. A configuração fica salva neste navegador.</p>
-    <div class="date-grid">
-      <label for="dateStart">Data inicial<input id="dateStart" type="date" value="2026-10-01"></label>
-      <label for="dateEnd">Data final<input id="dateEnd" type="date" value="2026-10-31"></label>
-    </div>
-    <div id="dateError" class="error" role="alert" hidden>A data final deve ser igual ou posterior à data inicial.</div>
-    <button id="saveSettings" class="primary full">Salvar período</button>
-    <div id="settingsStatus" class="status" aria-live="polite">Período padrão: 01/10/2026 a 31/10/2026</div>
-  </section>
-  <section class="actions-section">
-    <div class="actions-heading"><h2>Ações do plano no Cobalto</h2><span id="actionsCount" class="count small-count">0</span></div>
-    <button id="refreshCobaltoActions" class="primary full">Atualizar / importar ações da grade</button>
-    <p class="hint">Abra o plano do Cobalto com a grade #gridAcoes e use o botão abaixo. A extensão importa as ações e mostra modalidade, carga horária, horas utilizadas e saldo.</p>
-    <div id="actionsUpdated" class="status" aria-live="polite">Ainda não há ações importadas. Abra o plano do Cobalto em outra aba e clique em “Atualizar / importar ações da grade”.</div>
-    <div id="actionsList" class="actions-list"></div>
-  </section>
-  <div class="status" style="padding:10px 14px">No Cobalto, o menu PGD também aparece na página do plano para preparar contribuições semanais.</div><div class="toolbar"><button id="exportTxt" class="primary">Exportar lista TXT</button><button id="exportJson">Preparar para Cobalto (JSON)</button><button id="copy">Copiar lista</button></div>
-  <div id="items" class="items"></div>
-  <div id="empty" class="empty">Nenhum item adicionado. Clique em <b>PGD</b> ao lado de um processo ou despacho no SEI.</div>
-  <footer><button id="clear" class="danger">Limpar lista</button><span>Dados salvos neste navegador.</span></footer>
-  <script src="popup.js"></script>
-</body>
-</html>
+<header><strong>SEI → Cobalto</strong></header>
+<main id="direto" style="border-bottom:1px solid #ddd">
+  <strong>Botão “→ Cobalto” do SEI</strong>
+  <div style="display:flex;gap:6px;margin:6px 0"><select id="acao" style="flex:1;min-width:0"></select>
+    <input id="horas" type="number" min="0.5" max="24" step="0.5" value="8" style="width:56px" title="Horas lançadas no dia"><span style="align-self:center">h</span></div>
+  <label style="display:block"><input type="checkbox" id="auto"> Enviar sozinho a partir das <input type="time" id="hor"></label>
+  <div style="margin:6px 0"><b id="filaT">Fila de hoje</b> <button id="enviar" style="margin-left:6px">Enviar agora</button></div>
+  <div id="fila" style="font-size:12px"></div>
+  <div id="erro" style="font-size:12px;color:#b3261e"></div>
+  <div id="hist" style="font-size:12px;margin-top:6px"></div>
+</main>
+<main id="acoes" style="border-bottom:1px solid #ddd">
+  <div style="display:flex;align-items:center;gap:8px"><strong style="flex:1">Ações do plano no Cobalto (<span id="nAcoes">0</span>)</strong><button id="reler">Atualizar do Cobalto</button></div>
+  <div id="dst" style="font-size:12px;color:#555;margin:4px 0"></div>
+  <div id="listaAcoes" style="font-size:12px;max-height:180px;overflow:auto"></div>
+</main>
+<main style="padding-top:6px"><form id="f"><input type="text" id="ft" placeholder="Atividade manual (entra na fila de hoje)" maxlength="200"><button>Adicionar</button></form></main>
+<footer>  <a href="https://cobalto.ufpel.edu.br/" target="_blank">Abrir Cobalto</a>
+  <a href="#" id="opt">Opções</a></footer>
+<script src="common.js"></script><script src="popup.js"></script>
+</body></html>
