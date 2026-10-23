@@ -10,7 +10,7 @@
 2. No ícone da extensão, escolha a **Ação**, as **horas do dia** (padrão 8h) e o horário do envio automático (padrão 17:30).
 3. No SEI, clique em **→ Cobalto** ao lado de um processo ou Despacho. O item entra na fila do dia (o ícone da extensão mostra quantos há).
 4. No horário configurado, a extensão cria **um lançamento do dia** na Ação escolhida, com os itens separados por vírgula, ex.:
-   `Elaboração de Despacho 4248552 no processo 23110.026892/2020-89, Despacho 4248600 no processo …; Análise dos processos 23110.029312/2025-10, ….`
+   `Elaboração de Despacho 4248552 no processo 23110.026892/1984-89, Despacho 4248600 no processo …; Análise dos processos 23110.029312/1900-10, ….`
    Se não couber em 256 caracteres, divide em mais de um lançamento no mesmo dia, repartindo as horas.
 - Quer enviar antes? Use **Enviar agora** no aviso que aparece no SEI ou no popup. Dias antigos que ficaram na fila são enviados na próxima verificação (a cada 15 min, com o Chrome aberto).
 - Não envia se o dia já tiver 8h lançadas ou se faltar saldo na ação; os itens ficam na fila e o ícone mostra "!".
@@ -21,3 +21,6 @@
 - Atividade manual (campo no popup) entra na fila de hoje e vai na mesma descrição do dia.
 - Opções avançadas (ícone → Opções): limite de horas/dia, envio automático e tipos de documento (`Despacho`, `Ofício`…).
 - Se o seu SEI não for `sei.ufpel.edu.br`, troque o endereço em `manifest.json`.
+
+# Estenção disponibilizada e mantida pela PROGEP.
+# Sugestões e melhorias? Manda para nós ...   
