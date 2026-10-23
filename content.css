@@ -1,0 +1,21 @@
+.sei-pgd-add-button {
+  display: inline-block !important;
+  vertical-align: middle !important;
+  margin: 2px 5px !important;
+  padding: 3px 7px !important;
+  border: 1px solid #1d6b45 !important;
+  border-radius: 5px !important;
+  background: #e8f5ec !important;
+  color: #14532d !important;
+  font: 600 11px/1.3 Arial, sans-serif !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  z-index: 9999 !important;
+}
+.sei-pgd-add-button:hover { background: #d1ead8 !important; }
+.sei-pgd-add-button.sei-pgd-added {
+  background: #14532d !important;
+  color: #fff !important;
+  border-color: #14532d !important;
+}

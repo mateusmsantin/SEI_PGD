@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "SEI - Coletor PGD",
+  "version": "1.3.0",
+  "description": "Coleta processos do SEI e permite importar ações diretamente da grade #gridAcoes do Cobalto e preparar contribuições semanais com revisão antes de gravar.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://sei.ufpel.edu.br/*",
+    "https://*.ufpel.edu.br/*",
+    "https://cobalto.ufpel.edu.br/*"
+  ],
+  "action": {
+    "default_title": "Coletor PGD",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://sei.ufpel.edu.br/*",
+        "https://*.ufpel.edu.br/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://cobalto.ufpel.edu.br/prgrh/teletrabalho/*"
+      ],
+      "js": [
+        "cobalto.js"
+      ],
+      "css": [
+        "cobalto.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

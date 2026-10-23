@@ -1,0 +1,26 @@
+#sei-pgd-cobalto-panel {
+  position: relative; z-index: 9999; margin: 16px 0; padding: 16px;
+  border: 1px solid #b8d8c4; border-left: 5px solid #176b45; border-radius: 8px;
+  background: #f8fcf9; color: #1f2937; font: 14px/1.45 Arial, sans-serif;
+  box-shadow: 0 2px 8px rgba(0,0,0,.07);
+}
+#sei-pgd-cobalto-panel * { box-sizing: border-box; }
+#sei-pgd-cobalto-panel .pgd-header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+#sei-pgd-cobalto-panel h2 { font-size:18px; margin:0; color:#14532d; }
+#sei-pgd-cobalto-panel .pgd-subtitle { color:#5f6b63; font-size:12px; margin-top:3px; }
+#sei-pgd-cobalto-panel .pgd-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+#sei-pgd-cobalto-panel .pgd-field { display:flex; flex-direction:column; gap:5px; min-width:0; margin:0 0 10px; }
+#sei-pgd-cobalto-panel label { font-weight:600; font-size:12px; color:#34443a; }
+#sei-pgd-cobalto-panel input, #sei-pgd-cobalto-panel select, #sei-pgd-cobalto-panel textarea { width:100%; border:1px solid #c8d2cb; border-radius:5px; padding:8px; background:#fff; color:#202820; font:13px Arial,sans-serif; }
+#sei-pgd-cobalto-panel textarea { min-height:105px; resize:vertical; line-height:1.45; }
+#sei-pgd-cobalto-panel .pgd-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+#sei-pgd-cobalto-panel button { border:1px solid #b8c4bb; border-radius:5px; padding:8px 12px; background:#fff; color:#1f2937; font:600 12px Arial,sans-serif; cursor:pointer; }
+#sei-pgd-cobalto-panel button.pgd-primary { background:#176b45; color:#fff; border-color:#176b45; }
+#sei-pgd-cobalto-panel button.pgd-danger { color:#a12622; border-color:#d9aaa7; }
+#sei-pgd-cobalto-panel .pgd-status { margin-top:10px; padding:8px 10px; background:#edf5ef; border-radius:5px; font-size:12px; white-space:pre-wrap; }
+#sei-pgd-cobalto-panel .pgd-status.error { color:#a12622; background:#fff0ef; }
+#sei-pgd-cobalto-panel .pgd-preview { margin-top:12px; padding:10px; border:1px solid #d7e1d9; border-radius:5px; background:#fff; }
+#sei-pgd-cobalto-panel .pgd-preview table { width:100%; border-collapse:collapse; font-size:12px; }
+#sei-pgd-cobalto-panel .pgd-preview th, #sei-pgd-cobalto-panel .pgd-preview td { text-align:left; padding:6px; border-bottom:1px solid #e5eae6; }
+#sei-pgd-cobalto-panel .pgd-note { font-size:11px; color:#66736a; margin:4px 0 10px; }
+@media (max-width: 700px) { #sei-pgd-cobalto-panel .pgd-grid { grid-template-columns:1fr; } }

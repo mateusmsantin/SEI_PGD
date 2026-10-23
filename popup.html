@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PGD — SEI → Cobalto</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header><div><h1>PGD — SEI → Cobalto</h1><p>Processos selecionados e período das entregas</p></div><span id="count" class="count">0</span></header>
+  <section class="settings">
+    <h2>Período das entregas</h2>
+    <p class="hint">Defina o intervalo para planejar as entregas. A configuração fica salva neste navegador.</p>
+    <div class="date-grid">
+      <label for="dateStart">Data inicial<input id="dateStart" type="date" value="2026-10-01"></label>
+      <label for="dateEnd">Data final<input id="dateEnd" type="date" value="2026-10-31"></label>
+    </div>
+    <div id="dateError" class="error" role="alert" hidden>A data final deve ser igual ou posterior à data inicial.</div>
+    <button id="saveSettings" class="primary full">Salvar período</button>
+    <div id="settingsStatus" class="status" aria-live="polite">Período padrão: 01/10/2026 a 31/10/2026</div>
+  </section>
+  <section class="actions-section">
+    <div class="actions-heading"><h2>Ações do plano no Cobalto</h2><span id="actionsCount" class="count small-count">0</span></div>
+    <button id="refreshCobaltoActions" class="primary full">Atualizar / importar ações da grade</button>
+    <p class="hint">Abra o plano do Cobalto com a grade #gridAcoes e use o botão abaixo. A extensão importa as ações e mostra modalidade, carga horária, horas utilizadas e saldo.</p>
+    <div id="actionsUpdated" class="status" aria-live="polite">Ainda não há ações importadas. Abra o plano do Cobalto em outra aba e clique em “Atualizar / importar ações da grade”.</div>
+    <div id="actionsList" class="actions-list"></div>
+  </section>
+  <div class="status" style="padding:10px 14px">No Cobalto, o menu PGD também aparece na página do plano para preparar contribuições semanais.</div><div class="toolbar"><button id="exportTxt" class="primary">Exportar lista TXT</button><button id="exportJson">Preparar para Cobalto (JSON)</button><button id="copy">Copiar lista</button></div>
+  <div id="items" class="items"></div>
+  <div id="empty" class="empty">Nenhum item adicionado. Clique em <b>PGD</b> ao lado de um processo ou despacho no SEI.</div>
+  <footer><button id="clear" class="danger">Limpar lista</button><span>Dados salvos neste navegador.</span></footer>
+  <script src="popup.js"></script>
+</body>
+</html>
