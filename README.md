@@ -22,5 +22,5 @@
 - Opções avançadas (ícone → Opções): limite de horas/dia, envio automático e tipos de documento (`Despacho`, `Ofício`…).
 - Se o seu SEI não for `sei.ufpel.edu.br`, troque o endereço em `manifest.json`.
 
-# Estenção disponibilizada e mantida pela PROGEP.
-# Sugestões e melhorias? Manda para nós ...   
+
+## Sugestões e melhorias, escrevei aí! 
